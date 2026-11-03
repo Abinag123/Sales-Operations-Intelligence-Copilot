@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Model Lab — Sales &amp; Operations Intelligence Copilot</title>
+  <meta name="description" content="Score a lead with the exact exported logistic-regression pipeline, inspect the drivers behind the probability, and review hold-out metrics and threshold trade-offs." />
+  <meta name="theme-color" content="#04080f" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-page="model">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Sales and Operations Intelligence Copilot home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+        </span>
+        <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html" data-nav="overview">Overview</a>
+        <a href="analytics.html" data-nav="analytics">Analytics</a>
+        <a href="model.html" data-nav="model">Model Lab</a>
+        <a href="knowledge.html" data-nav="knowledge">Knowledge</a>
+        <a href="system.html" data-nav="system">System</a>
+        <a href="model.html" class="nav-cta">Score a lead</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" style="padding-bottom: 34px;">
+      <div class="shell">
+        <span class="eyebrow"><span class="pulse-dot"></span> Logistic regression &middot; threshold 0.75</span>
+        <h1 style="font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin: 20px 0 16px; max-width: 18ch;">
+          Score a lead, <span class="grad-text">see the why</span>.
+        </h1>
+        <p class="lede">
+          This is the model from <span class="mono">models/lead_conversion_pipeline.joblib</span>
+          running in your browser. The preprocessing statistics and coefficients
+          were exported directly from the trained pipeline, so the probability here
+          matches <span class="mono">POST /predict</span> exactly.
+        </p>
+      </div>
+    </section>
+
+    <section class="section tight" style="padding-top: 10px;">
+      <div class="shell">
+        <div class="lab-grid">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Lead inputs</h3>
+                <p class="card-sub">Adjust any field — the score updates immediately</p>
+              </div>
+              <span class="tag info">9 features</span>
+            </div>
+
+            <form class="card-body" id="leadForm" autocomplete="off">
+              <div class="field-grid">
+                <div class="field">
+                  <label for="lead_source">Lead source</label>
+                  <select id="lead_source" name="lead_source"></select>
+                </div>
+                <div class="field">
+                  <label for="industry">Industry</label>
+                  <select id="industry" name="industry"></select>
+                </div>
+                <div class="field">
+                  <label for="company_size">Company size</label>
+                  <select id="company_size" name="company_size"></select>
+                </div>
+                <div class="field">
+                  <label for="budget">Budget <span>USD</span></label>
+                  <input id="budget" name="budget" type="number" min="0" step="1000" value="150000" />
+                </div>
+                <div class="field">
+                  <label for="website_visits">Website visits</label>
+                  <input id="website_visits" name="website_visits" type="number" min="0" step="1" value="40" />
+                </div>
+                <div class="field">
+                  <label for="emails_opened">Emails opened</label>
+                  <input id="emails_opened" name="emails_opened" type="number" min="0" step="1" value="15" />
+                </div>
+                <div class="field">
+                  <label for="calls_made">Calls made</label>
+                  <input id="calls_made" name="calls_made" type="number" min="0" step="1" value="10" />
+                </div>
+                <div class="field">
+                  <label for="previous_interactions">Previous interactions</label>
+                  <input id="previous_interactions" name="previous_interactions" type="number" min="0" step="1" value="8" />
+                </div>
+                <div class="field">
+                  <label for="response_time_hours">Response time <span>hours</span></label>
+                  <input id="response_time_hours" name="response_time_hours" type="number" min="0" step="0.5" value="1" />
+                </div>
+              </div>
+
+              <div class="preset-row" role="group" aria-label="Preset leads">
+                <span class="filter-label">Presets</span>
+                <button class="chip" type="button" data-preset="hot" aria-pressed="false">High intent</button>
+                <button class="chip" type="button" data-preset="warm" aria-pressed="false">Mid-funnel</button>
+                <button class="chip" type="button" data-preset="cold" aria-pressed="false">Cold inbound</button>
+                <button class="chip" type="button" data-preset="median" aria-pressed="false">Dataset median</button>
+              </div>
+            </form>
+          </article>
+
+          <aside class="result-panel" aria-live="polite">
+            <div class="card-head" style="margin-bottom: 6px;">
+              <div>
+                <h3 class="card-title">Conversion probability</h3>
+                <p class="card-sub" id="resultLeadLine">Website &middot; IT &middot; Large</p>
+              </div>
+              <span class="tag" id="resultLogit">logit —</span>
+            </div>
+
+            <div class="gauge-wrap" id="labGauge" style="width: 250px; margin-inline: auto;"></div>
+
+            <div class="result-verdict">
+              <span class="verdict good" id="labVerdict">Likely to convert</span>
+              <span class="tag" id="labThreshold">cut-off 75%</span>
+            </div>
+
+            <div style="margin-top: 22px;">
+              <div class="card-sub" style="margin-bottom: 10px;">Contribution to the log-odds</div>
+              <div class="contribution-list" id="contributionList"></div>
+            </div>
+
+            <p class="result-note">
+              Contributions are coefficient × standardized value. Positive pushes
+              toward conversion; negative pulls away. Categorical rows add the
+              one-hot weight for the selected value.
+            </p>
+          </aside>
+        </div>
+
+        <div class="note" style="margin-top: 18px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span>
+            <strong>How to read the cut-off:</strong> the model returns a probability;
+            the 0.75 threshold turns it into a decision. Lowering the threshold
+            catches more converters at the cost of more false positives — the exact
+            trade-off is charted below.
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="model-card">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Model card</span>
+            <h2 class="h2">Measured on data it never trained on</h2>
+          </div>
+          <p class="section-sub">
+            Metrics reproduced from the reserved 20% hold-out split
+            (<span class="mono">random_state=42</span>, stratified) using the saved
+            pipeline at its deployed threshold.
+          </p>
+        </div>
+
+        <div class="grid g-7-5">
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Hold-out performance</h3>
+                <p class="card-sub" id="holdoutNote">1,000 held-out leads</p>
+              </div>
+              <span class="tag info" id="modelBadge">pipeline v1.0.0</span>
+            </div>
+            <div class="card-body">
+              <div class="metric-grid" id="metricGrid"></div>
+              <div style="margin-top: 18px;">
+                <div class="card-sub" style="margin-bottom: 10px;">Confusion matrix</div>
+                <div class="confusion" id="confusionGrid"></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Threshold trade-off</h3>
+                <p class="card-sub">Accuracy and macro F1 across decision cut-offs</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="thresholdChart"></div>
+              <div class="table-wrap">
+                <table class="data">
+                  <thead>
+                    <tr>
+                      <th>Threshold</th>
+                      <th class="right">Accuracy</th>
+                      <th class="right">Macro F1</th>
+                      <th class="right">Predicted</th>
+                    </tr>
+                  </thead>
+                  <tbody id="thresholdBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid g2" style="margin-top: 18px;">
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Candidate models</h3>
+                <p class="card-sub">Logged during model selection in the notebook</p>
+              </div>
+            </div>
+            <div class="card-body table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th class="right">Cut-off</th>
+                    <th class="right">Accuracy</th>
+                    <th class="right">Macro F1</th>
+                    <th class="right">ROC-AUC</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonBody"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Logged inference scenarios</h3>
+                <p class="card-sub">Recorded test cases from the original pipeline</p>
+              </div>
+            </div>
+            <div class="card-body table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Scenario</th>
+                    <th>Profile</th>
+                    <th class="right">Probability</th>
+                    <th>Decision</th>
+                  </tr>
+                </thead>
+                <tbody id="scenarioBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid g3" style="margin-top: 18px;">
+          <article class="card reveal">
+            <h3 class="card-title">Why logistic regression</h3>
+            <p class="card-sub" style="margin-top: 8px;">
+              Small data, mixed feature types, and a need for stable, inspectable
+              coefficients. The pipeline handles imputation, scaling and encoding in
+              one serialized object, and beats a majority-class baseline on the
+              hold-out split.
+            </p>
+          </article>
+          <article class="card reveal">
+            <h3 class="card-title">What drives the score</h3>
+            <p class="card-sub" style="margin-top: 8px;">
+              Budget, website visits, calls and response speed carry the largest
+              standardized weights. Channel and industry shift the log-odds only
+              slightly — consistent with their narrow conversion spread.
+            </p>
+          </article>
+          <article class="card reveal">
+            <h3 class="card-title">Known limits</h3>
+            <ul class="clean" style="margin-top: 8px;">
+              <li>Synthetic training data — no proven business lift.</li>
+              <li>0.659 ROC-AUC is modest; ranking quality is limited.</li>
+              <li>No time dimension, so drift is unmeasured.</li>
+              <li>Fairness by segment has not been evaluated.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="index.html">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+            </span>
+            <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+          </a>
+          <p>
+            Sales &amp; Operations Intelligence Copilot — machine learning, hybrid
+            retrieval and a grounded language model in one small, inspectable system.
+          </p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="analytics.html">Analytics</a>
+            <a href="model.html">Model Lab</a>
+            <a href="knowledge.html">Knowledge Assistant</a>
+          </div>
+          <div class="footer-col">
+            <h4>Engineering</h4>
+            <a href="system.html">Architecture</a>
+            <a href="system.html#api">API reference</a>
+            <a href="system.html#limitations">Limitations</a>
+          </div>
+          <div class="footer-col">
+            <h4>Data</h4>
+            <a href="system.html#dataset">Dataset</a>
+            <a href="system.html#model-card">Model card</a>
+            <a href="system.html#quickstart">Quickstart</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Built from the local project artifacts — Python 3.14, FastAPI, scikit-learn, ChromaDB, Ollama.</span>
+        <span>Synthetic demonstration data. Not a production decision system.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/common.js" defer></script>
+  <script src="assets/js/scoring.js" defer></script>
+  <script src="assets/js/model.js" defer></script>
+</body>
+</html>

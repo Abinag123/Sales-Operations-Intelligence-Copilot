@@ -1,0 +1,49 @@
+# Data science and machine learning
+numpy
+pandas
+scipy
+scikit-learn
+imbalanced-learn
+
+# Data visualization
+matplotlib
+seaborn
+plotly
+
+# Jupyter
+jupyter
+ipykernel
+
+# API and validation
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
+
+# Dashboard
+streamlit
+streamlit-autorefresh
+
+# LLM and RAG
+ollama
+sentence-transformers
+chromadb
+rank-bm25
+langchain
+langchain-community
+langchain-text-splitters
+pypdf
+python-docx
+
+# Data handling
+openpyxl
+python-dotenv
+
+# HTTP and utilities
+requests
+httpx
+
+# Testing and code quality
+pytest
+pytest-cov
+ruff

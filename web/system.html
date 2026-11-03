@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>System — Sales &amp; Operations Intelligence Copilot</title>
+  <meta name="description" content="Architecture, API reference, dataset documentation, quickstart and limitations for the Sales & Operations Intelligence Copilot." />
+  <meta name="theme-color" content="#04080f" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-page="system">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Sales and Operations Intelligence Copilot home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+        </span>
+        <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html" data-nav="overview">Overview</a>
+        <a href="analytics.html" data-nav="analytics">Analytics</a>
+        <a href="model.html" data-nav="model">Model Lab</a>
+        <a href="knowledge.html" data-nav="knowledge">Knowledge</a>
+        <a href="system.html" data-nav="system">System</a>
+        <a href="model.html" class="nav-cta">Score a lead</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" style="padding-bottom: 30px;">
+      <div class="shell">
+        <span class="eyebrow"><span class="pulse-dot"></span> System notes &middot; reproducible from the repo</span>
+        <h1 style="font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin: 20px 0 16px; max-width: 18ch;">
+          Everything <span class="grad-text">under the hood</span>.
+        </h1>
+        <p class="lede">
+          How the scoring service, the hybrid retriever and this website fit
+          together — plus the API contract, the dataset schema, and the things this
+          system deliberately does not do.
+        </p>
+      </div>
+    </section>
+
+    <section class="section tight" id="architecture">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Architecture</span>
+            <h2 class="h2">Four layers, no hidden services</h2>
+          </div>
+          <p class="section-sub">
+            All model artifacts and indexes are local files. The only network
+            dependency is the local Ollama runtime that serves the language model.
+          </p>
+        </div>
+
+        <div class="grid g-7-5">
+          <div class="arch reveal">
+            <div class="layer">
+              <div class="layer-head">Presentation <span class="layer-tag">UI</span></div>
+              <div class="layer-chips">
+                <span class="stack-chip">Streamlit command center</span>
+                <span class="stack-chip">Static website (this site)</span>
+                <span class="stack-chip">Plotly charts</span>
+                <span class="stack-chip">REST clients</span>
+              </div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">↓ &nbsp;HTTP / JSON</div>
+            <div class="layer">
+              <div class="layer-head">API service <span class="layer-tag">FastAPI</span></div>
+              <div class="layer-chips">
+                <span class="stack-chip">GET /health</span>
+                <span class="stack-chip">POST /predict</span>
+                <span class="stack-chip">POST /ask</span>
+                <span class="stack-chip">Pydantic validation</span>
+              </div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">↓ &nbsp;function calls</div>
+            <div class="layer">
+              <div class="layer-head">Intelligence <span class="layer-tag">ML + RAG</span></div>
+              <div class="layer-chips">
+                <span class="stack-chip">scikit-learn pipeline</span>
+                <span class="stack-chip">all-MiniLM-L6-v2 embeddings</span>
+                <span class="stack-chip">BM25 + RRF fusion</span>
+                <span class="stack-chip">Llama 3.2 via Ollama</span>
+              </div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">↓ &nbsp;local files</div>
+            <div class="layer">
+              <div class="layer-head">Storage <span class="layer-tag">local</span></div>
+              <div class="layer-chips">
+                <span class="stack-chip">data/raw/sales_leads_raw.csv</span>
+                <span class="stack-chip">data/vector_db (ChromaDB)</span>
+                <span class="stack-chip">data/documents/*.txt</span>
+                <span class="stack-chip">models/*.joblib</span>
+              </div>
+            </div>
+          </div>
+
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">A scoring request, start to finish</h3>
+                <p class="card-sub">The path behind the Model Lab</p>
+              </div>
+            </div>
+            <ol class="steps" style="margin-top: 16px;">
+              <li><b>Validate</b> — Pydantic enforces 9 required fields and non-negative numbers.</li>
+              <li><b>Frame</b> — <span class="mono">predict_lead()</span> checks types, finiteness and ranges.</li>
+              <li><b>Transform</b> — median imputation, standardization, one-hot encoding inside the saved pipeline.</li>
+              <li><b>Score</b> — logistic regression returns a probability in [0, 1].</li>
+              <li><b>Decide</b> — probabilities at or above 0.75 become "Likely to Convert".</li>
+              <li><b>Return</b> — probability, label and threshold as JSON.</li>
+            </ol>
+            <div class="note" style="margin-top: 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span>
+                This website reproduces steps 3–5 in JavaScript from the exported
+                pipeline parameters, so the demo works without a backend.
+              </span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight" id="api">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">API reference</span>
+            <h2 class="h2">Four endpoints, documented by the code</h2>
+          </div>
+          <p class="section-sub">
+            FastAPI serves interactive OpenAPI docs at
+            <span class="mono">http://127.0.0.1:8000/docs</span>.
+          </p>
+        </div>
+
+        <div class="grid g2">
+          <article class="card reveal">
+            <div class="endpoint"><span class="method get">GET</span><span class="path">/health</span></div>
+            <p class="card-sub">Liveness and version information used by the dashboard status pill.</p>
+            <div class="code" style="margin-top: 12px;">
+              <div class="code-head"><span>200 OK</span><button class="copy-btn" type="button" data-copy="#healthRes">Copy</button></div>
+              <pre id="healthRes">{
+  "status": "healthy",
+  "application": "Sales &amp; Operations Intelligence Copilot",
+  "version": "1.0.0"
+}</pre>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="endpoint"><span class="method post">POST</span><span class="path">/predict</span></div>
+            <p class="card-sub">Scores one lead. All numeric fields must be finite and non-negative.</p>
+            <div class="code" style="margin-top: 12px;">
+              <div class="code-head"><span>Request body</span><button class="copy-btn" type="button" data-copy="#predictReq">Copy</button></div>
+              <pre id="predictReq">{
+  "lead_source": "Website",
+  "industry": "IT",
+  "company_size": "Large",
+  "budget": 150000,
+  "website_visits": 40,
+  "emails_opened": 15,
+  "calls_made": 10,
+  "previous_interactions": 8,
+  "response_time_hours": 1
+}</pre>
+            </div>
+            <div class="code" style="margin-top: 10px;">
+              <div class="code-head"><span>200 OK</span></div>
+              <pre>{
+  "conversion_probability": 0.9658,
+  "prediction": "Likely to Convert",
+  "threshold": 0.75
+}</pre>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="endpoint"><span class="method post">POST</span><span class="path">/ask</span></div>
+            <p class="card-sub">Retrieves the three best chunks and generates a grounded answer with citations.</p>
+            <div class="code" style="margin-top: 12px;">
+              <div class="code-head"><span>Request body</span><button class="copy-btn" type="button" data-copy="#askReq">Copy</button></div>
+              <pre id="askReq">{
+  "question": "Who approves discounts?"
+}</pre>
+            </div>
+            <div class="code" style="margin-top: 10px;">
+              <div class="code-head"><span>200 OK (truncated)</span></div>
+              <pre>{
+  "question": "Who approves discounts?",
+  "answer": "The authorized business representative approves discounts...",
+  "citations": [
+    {
+      "citation": "Source 1",
+      "filename": "sales_policy.txt",
+      "chunk_id": 2,
+      "distance": 0.3688,
+      "supporting_text": "Discount Policy: Any discount must be approved..."
+    }
+  ]
+}</pre>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="endpoint"><span class="method get">GET</span><span class="path">/</span></div>
+            <p class="card-sub">Service banner, useful for a quick smoke test.</p>
+            <div class="code" style="margin-top: 12px;">
+              <div class="code-head"><span>200 OK</span></div>
+              <pre>{
+  "message": "Welcome to Sales &amp; Operations Intelligence Copilot",
+  "status": "Backend is running"
+}</pre>
+            </div>
+            <div class="note" style="margin-top: 14px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+              <span>Validation errors return 422 from FastAPI; runtime failures return 500 with a detail message.</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight" id="dataset">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Dataset</span>
+            <h2 class="h2">Nine features, one binary target</h2>
+          </div>
+          <p class="section-sub">
+            <span class="mono">data/raw/sales_leads_raw.csv</span> — 5,000 synthetic
+            B2B leads, 0 missing values, 0 duplicate rows, 82.68% converted.
+          </p>
+        </div>
+
+        <div class="grid g-7-5">
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Schema</h3>
+                <p class="card-sub">Column, type and role in the model</p>
+              </div>
+            </div>
+            <div class="card-body table-wrap">
+              <table class="data">
+                <thead>
+                  <tr><th>Column</th><th>Type</th><th>Role</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="strong">lead_id</td><td>integer</td><td>identifier (excluded)</td></tr>
+                  <tr><td class="strong">lead_source</td><td>category</td><td>feature — Website, Social Media, Referral, Advertisement, Email</td></tr>
+                  <tr><td class="strong">industry</td><td>category</td><td>feature — Retail, Healthcare, IT, Manufacturing, Real Estate</td></tr>
+                  <tr><td class="strong">company_size</td><td>category</td><td>feature — Small, Medium, Large</td></tr>
+                  <tr><td class="strong">budget</td><td>float</td><td>feature — 5,030 to 199,985</td></tr>
+                  <tr><td class="strong">website_visits</td><td>integer</td><td>feature — 0 to 49</td></tr>
+                  <tr><td class="strong">emails_opened</td><td>integer</td><td>feature — 0 to 19</td></tr>
+                  <tr><td class="strong">calls_made</td><td>integer</td><td>feature — 0 to 14</td></tr>
+                  <tr><td class="strong">previous_interactions</td><td>integer</td><td>feature — 0 to 19</td></tr>
+                  <tr><td class="strong">response_time_hours</td><td>float</td><td>feature — 0.5 to 72</td></tr>
+                  <tr><td class="strong">converted</td><td>integer</td><td>target — 1 converted, 0 not</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Preparation</h3>
+                <p class="card-sub">What the pipeline does to the raw table</p>
+              </div>
+            </div>
+            <ul class="clean" style="margin-top: 14px;">
+              <li>Numeric: median imputation, then standard scaling.</li>
+              <li>Categorical: most-frequent imputation, then one-hot encoding with unknown categories ignored.</li>
+              <li>Split: 64% train, 16% validation, 20% reserved test, stratified.</li>
+              <li>Selection: logistic regression chosen over dummy, random forest and gradient boosting candidates.</li>
+              <li>Threshold: tuned on validation macro F1, deployed at 0.75.</li>
+            </ul>
+            <div class="note warn" style="margin-top: 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+              <span>
+                The CSV is generated, not observed. Performance here demonstrates a
+                working pipeline; it says nothing about real conversion lift.
+              </span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight" id="model-card">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Model card</span>
+            <h2 class="h2">What the score means — and what it doesn't</h2>
+          </div>
+          <a class="btn btn-ghost btn-sm" href="model.html#model-card">Full metrics in the Model Lab</a>
+        </div>
+
+        <div class="grid g4">
+          <article class="card kpi reveal">
+            <span class="kpi-label">Hold-out accuracy</span>
+            <span class="kpi-value num">74.6%</span>
+            <span class="kpi-foot">1,000 unseen leads</span>
+          </article>
+          <article class="card kpi reveal">
+            <span class="kpi-label">Macro F1</span>
+            <span class="kpi-value num">0.584</span>
+            <span class="kpi-foot">Balance across both classes</span>
+          </article>
+          <article class="card kpi reveal">
+            <span class="kpi-label">ROC-AUC</span>
+            <span class="kpi-value num">0.659</span>
+            <span class="kpi-foot">Modest ranking quality</span>
+          </article>
+          <article class="card kpi reveal">
+            <span class="kpi-label">Decision threshold</span>
+            <span class="kpi-value num">0.75</span>
+            <span class="kpi-foot">Tuned on validation F1</span>
+          </article>
+        </div>
+
+        <div class="grid g2" style="margin-top: 18px;">
+          <article class="card reveal">
+            <h3 class="card-title">Intended use</h3>
+            <ul class="clean" style="margin-top: 10px;">
+              <li>Prioritising follow-up inside a sales team.</li>
+              <li>Explaining which behaviours correlate with conversion.</li>
+              <li>Demonstrating an end-to-end ML + RAG service.</li>
+            </ul>
+          </article>
+          <article class="card reveal">
+            <h3 class="card-title">Out of scope</h3>
+            <ul class="clean" style="margin-top: 10px;">
+              <li>Credit, pricing or hiring decisions.</li>
+              <li>Any decision without human review.</li>
+              <li>Claims of real-world causal impact.</li>
+              <li>Production traffic without auth, logging and drift monitoring.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight" id="structure">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Repository</span>
+            <h2 class="h2">Where everything lives</h2>
+          </div>
+        </div>
+        <article class="card reveal">
+          <pre class="tree"><span class="dir">Sales-Operations-Intelligence-Copilot/</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="dir">api/</span><span class="file">main.py</span>              <span class="comment"># FastAPI app: /predict, /ask, /health</span>
+│   ├── <span class="dir">ml/</span><span class="file">predict.py</span>           <span class="comment"># validation + inference wrapper</span>
+│   ├── <span class="dir">rag/</span>                     <span class="comment"># chunking, embeddings, Chroma, BM25, fusion</span>
+│   ├── <span class="dir">llm/</span><span class="file">ollama_client.py</span>     <span class="comment"># local Llama call, low-memory options</span>
+│   └── <span class="dir">dashboard/</span><span class="file">app.py</span>        <span class="comment"># Streamlit command center</span>
+├── <span class="dir">scripts/</span>
+│   ├── <span class="file">run_api.py</span>               <span class="comment"># start the backend</span>
+│   ├── <span class="file">run_dashboard.py</span>         <span class="comment"># start Streamlit</span>
+│   ├── <span class="file">ingest_knowledge.py</span>      <span class="comment"># rebuild the vector store</span>
+│   ├── <span class="file">train_model.py</span>           <span class="comment"># reproduce the model artifact</span>
+│   ├── <span class="file">export_web_data.py</span>       <span class="comment"># generate this site's JSON</span>
+│   └── <span class="file">check_stack.py</span>           <span class="comment"># environment + artifact health</span>
+├── <span class="dir">data/</span>
+│   ├── <span class="dir">raw/</span><span class="file">sales_leads_raw.csv</span>
+│   ├── <span class="dir">documents/</span>               <span class="comment"># company profile, services, sales policy</span>
+│   └── <span class="dir">vector_db/</span>               <span class="comment"># Chroma persistence</span>
+├── <span class="dir">models/</span><span class="file">lead_conversion_pipeline.joblib</span>
+├── <span class="dir">notebooks/</span><span class="file">ML_Pipeline.ipynb</span>  <span class="comment"># analysis + model selection record</span>
+├── <span class="dir">web/</span>                        <span class="comment"># this website (static)</span>
+├── <span class="dir">tests/</span>
+├── <span class="file">requirements.txt</span>
+└── <span class="file">README.md</span></pre>
+        </article>
+      </div>
+    </section>
+
+    <section class="section tight" id="quickstart">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Quickstart</span>
+            <h2 class="h2">Run the whole thing locally</h2>
+          </div>
+          <p class="section-sub">Windows PowerShell commands; the same steps work with the equivalent shell syntax elsewhere.</p>
+        </div>
+
+        <div class="grid g2">
+          <article class="card reveal">
+            <div class="card-head"><div><h3 class="card-title">1. Environment and services</h3></div></div>
+            <div class="code" style="margin-top: 12px;">
+              <div class="code-head"><span>PowerShell</span><button class="copy-btn" type="button" data-copy="#setupCmds">Copy</button></div>
+              <pre id="setupCmds">python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+
+ollama pull llama3.2:1b
+python scripts/ingest_knowledge.py
+
+python scripts/run_api.py
+python scripts/run_dashboard.py</pre>
+            </div>
+            <p class="card-sub" style="margin-top: 10px;">
+              API on <span class="mono">:8000</span>, dashboard on
+              <span class="mono">:8501</span>. The dashboard reads
+              <span class="mono">DASHBOARD_API_URL</span>.
+            </p>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-head"><div><h3 class="card-title">2. Verify and rebuild the site</h3></div></div>
+            <div class="code" style="margin-top: 12px;">
+              <div class="code-head"><span>PowerShell</span><button class="copy-btn" type="button" data-copy="#webCmds">Copy</button></div>
+              <pre id="webCmds">python scripts/check_stack.py
+python -m pytest tests -q
+
+# regenerate website data from the artifacts
+python scripts/export_web_data.py
+
+# preview the static site
+python -m http.server 8080 --directory web</pre>
+            </div>
+            <p class="card-sub" style="margin-top: 10px;">
+              The site is plain HTML, CSS and JavaScript. It reads the JSON in
+              <span class="mono">web/assets/data</span>, so re-export after changing
+              the dataset, model or documents.
+            </p>
+          </article>
+        </div>
+
+        <div class="note" style="margin-top: 18px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span>
+            <strong>Deployment note:</strong> this website is deployed as static
+            files. The FastAPI service and Ollama model are not exposed publicly —
+            run them locally, or containerise the backend separately before
+            exposing it.
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="limitations">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Limitations</span>
+            <h2 class="h2">What would have to change for production</h2>
+          </div>
+        </div>
+        <div class="grid g3">
+          <article class="card feature reveal">
+            <h3>Data</h3>
+            <p>
+              Training data is synthetic and has no timestamps, so drift, seasonality
+              and leakage risk are unmeasured. Replace it with verified CRM history
+              before drawing conclusions.
+            </p>
+          </article>
+          <article class="card feature reveal">
+            <h3>Modelling</h3>
+            <p>
+              ROC-AUC of 0.659 leaves plenty of room. Segment-level performance and
+              calibration are not evaluated, and the 0.75 threshold trades recall for
+              precision.
+            </p>
+          </article>
+          <article class="card feature reveal">
+            <h3>Operations</h3>
+            <p>
+              No authentication, rate limiting, structured logging or monitoring.
+              The LLM runs locally without guardrails beyond prompt instructions and
+              human approval policy.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="index.html">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+            </span>
+            <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+          </a>
+          <p>
+            Sales &amp; Operations Intelligence Copilot — machine learning, hybrid
+            retrieval and a grounded language model in one small, inspectable system.
+          </p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="analytics.html">Analytics</a>
+            <a href="model.html">Model Lab</a>
+            <a href="knowledge.html">Knowledge Assistant</a>
+          </div>
+          <div class="footer-col">
+            <h4>Engineering</h4>
+            <a href="system.html">Architecture</a>
+            <a href="system.html#api">API reference</a>
+            <a href="system.html#limitations">Limitations</a>
+          </div>
+          <div class="footer-col">
+            <h4>Data</h4>
+            <a href="system.html#dataset">Dataset</a>
+            <a href="system.html#model-card">Model card</a>
+            <a href="system.html#quickstart">Quickstart</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Built from the local project artifacts — Python 3.14, FastAPI, scikit-learn, ChromaDB, Ollama.</span>
+        <span>Synthetic demonstration data. Not a production decision system.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/common.js" defer></script>
+</body>
+</html>

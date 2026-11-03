@@ -1,0 +1,4 @@
+lead_id,lead_source,industry,company_size,budget,website_visits,emails_opened,calls_made,previous_interactions,response_time_hours,conversion_probability,prediction,threshold
+TEST_1,Website,IT,Large,150000,40,15,10,8,1,0.9658,Likely to Convert,0.75
+TEST_2,Social Media,Retail,Small,5000,1,0,0,0,48,0.3398,Unlikely to Convert,0.75
+TEST_3,Referral,Healthcare,Medium,30000,8,3,2,1,6,0.6608,Unlikely to Convert,0.75

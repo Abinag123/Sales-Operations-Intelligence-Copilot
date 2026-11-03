@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sales &amp; Operations Intelligence Copilot — lead conversion intelligence</title>
+  <meta name="description" content="An end-to-end sales intelligence system: a logistic-regression lead scorer trained on 5,000 leads, interactive analytics, and a retrieval-augmented company knowledge assistant." />
+  <meta name="theme-color" content="#04080f" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-page="overview">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Sales and Operations Intelligence Copilot home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+        </span>
+        <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html" data-nav="overview">Overview</a>
+        <a href="analytics.html" data-nav="analytics">Analytics</a>
+        <a href="model.html" data-nav="model">Model Lab</a>
+        <a href="knowledge.html" data-nav="knowledge">Knowledge</a>
+        <a href="system.html" data-nav="system">System</a>
+        <a href="model.html" class="nav-cta">Score a lead</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div>
+          <span class="eyebrow"><span class="pulse-dot"></span> Machine learning &nbsp;+&nbsp; retrieval-augmented AI</span>
+          <h1>Turn raw leads into <span class="grad-text">revenue decisions</span>.</h1>
+          <p class="lede">
+            A sales and operations copilot that scores every lead with a trained
+            classification model, explains what is driving the score, and answers
+            policy questions with citations from company documents.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="model.html">
+              Open the scoring lab
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a class="btn btn-ghost" href="analytics.html">Explore the analytics</a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="value num" id="heroLeads">5,000</div>
+              <span class="label">leads analysed</span>
+            </div>
+            <div class="hero-stat">
+              <div class="value num" id="heroRate">82.68%</div>
+              <span class="label">dataset conversion</span>
+            </div>
+            <div class="hero-stat">
+              <div class="value num" id="heroAuc">0.659</div>
+              <span class="label">hold-out ROC-AUC</span>
+            </div>
+            <div class="hero-stat">
+              <div class="value num" id="heroChunks">8</div>
+              <span class="label">grounded chunks</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="console" aria-label="Live lead score preview">
+          <div class="console-head">
+            <span class="console-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+              Lead signal console
+            </span>
+            <span class="tag good"><span class="pulse-dot"></span> model v1.0.0</span>
+          </div>
+          <div class="console-body">
+            <div class="score-row">
+              <div class="gauge-wrap" id="heroGauge" style="width: 178px; flex: none;"></div>
+              <div class="score-meta">
+                <div class="score-label">Sample lead</div>
+                <p style="margin: 4px 0 10px; font-size: 0.8rem; color: var(--muted);">
+                  Website &middot; IT &middot; Large<br />
+                  $150k budget &middot; 40 visits &middot; 1h response
+                </p>
+                <span class="verdict good" id="heroVerdict">Likely to convert</span>
+              </div>
+            </div>
+            <div class="driver-list" id="heroDrivers" aria-label="Strongest score drivers"></div>
+            <div class="console-foot">
+              <span>Exact in-browser inference</span>
+              <span>cut-off 75%</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section tight">
+      <div class="shell">
+        <div class="grid g4">
+          <article class="card kpi reveal">
+            <div class="kpi-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </div>
+            <span class="kpi-label">Total leads</span>
+            <span class="kpi-value" data-counter="5000" id="kpiLeads">5,000</span>
+            <span class="kpi-foot">5 acquisition channels &middot; 5 industries</span>
+          </article>
+          <article class="card kpi reveal">
+            <div class="kpi-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <span class="kpi-label">Converted leads</span>
+            <span class="kpi-value" data-counter="4134" id="kpiConverted">4,134</span>
+            <span class="kpi-foot"><span class="trend up">82.68%</span> of the pipeline</span>
+          </article>
+          <article class="card kpi reveal">
+            <div class="kpi-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+            <span class="kpi-label">Conversion rate</span>
+            <span class="kpi-value" data-counter="82.68" data-decimals="2" data-suffix="%" id="kpiRate">82.68%</span>
+            <span class="kpi-foot">Dataset-level target rate</span>
+          </article>
+          <article class="card kpi reveal">
+            <div class="kpi-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+            </div>
+            <span class="kpi-label">Average budget</span>
+            <span class="kpi-value" data-counter="102257" id="kpiBudget">102,257</span>
+            <span class="kpi-foot">Median 101,110 &middot; synthetic data</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="signals">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Conversion intelligence</span>
+            <h2 class="h2">Where conversion actually happens</h2>
+          </div>
+          <p class="section-sub">
+            Every chart below is computed from the 5,000-row lead dataset in the
+            repository — no illustrative numbers.
+          </p>
+        </div>
+
+        <div class="grid g-7-5">
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Conversion rate by lead source</h3>
+                <p class="card-sub">Share of leads that converted, per acquisition channel</p>
+              </div>
+              <span class="tag info">n = 5,000</span>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="sourceChart"></div>
+            </div>
+          </article>
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Outcome mix</h3>
+                <p class="card-sub">Converted vs. not converted</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="outcomeChart"></div>
+              <div class="legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#34d399"></span> Converted</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#475569"></span> Not converted</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid g2" style="margin-top: 18px;">
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Industry performance</h3>
+                <p class="card-sub">Conversion rate by lead industry</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="industryChart"></div>
+            </div>
+          </article>
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Response time vs. conversion</h3>
+                <p class="card-sub">Conversion rate grouped by first-response window</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="responseChart"></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="note reveal" style="margin-top: 18px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span>
+            <strong>Signal check:</strong> channel and industry lift is narrow
+            (roughly 82–83%), while budget, engagement volume and response time
+            separate converters from non-converters much more strongly. The model
+            below is built accordingly — and the dataset is synthetic, so these
+            patterns illustrate the pipeline, not verified market behaviour.
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Model behaviour</span>
+            <h2 class="h2">Signals that move the score</h2>
+          </div>
+          <p class="section-sub">
+            Logistic-regression coefficients from the serialized pipeline, shown
+            as correlation with conversion and standardized feature weights.
+          </p>
+        </div>
+        <div class="grid g2">
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Correlation with conversion</h3>
+                <p class="card-sub">Pearson r for each numeric feature</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="correlationChart"></div>
+            </div>
+          </article>
+          <article class="card reveal">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Conversion by budget quartile</h3>
+                <p class="card-sub">Leads split into four equal budget bands</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart" id="budgetChart"></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div>
+            <span class="kicker">Inside the copilot</span>
+            <h2 class="h2">Three layers, one decision surface</h2>
+          </div>
+          <p class="section-sub">
+            The deployed site is the presentation layer. The Python services in the
+            repository do the scoring, retrieval and generation.
+          </p>
+        </div>
+        <div class="grid g3">
+          <article class="card feature reveal">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+            </span>
+            <h3>Explainable scoring</h3>
+            <p>
+              A scikit-learn pipeline — median imputation, one-hot encoding,
+              standardization and logistic regression at a 0.75 cut-off — exposed
+              through <span class="mono">POST /predict</span> and reproduced
+              exactly in the browser.
+            </p>
+            <a class="btn btn-ghost btn-sm" href="model.html" style="align-self: flex-start;">Try the scoring lab</a>
+          </article>
+          <article class="card feature reveal">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            </span>
+            <h3>Grounded knowledge</h3>
+            <p>
+              Sentence-transformer embeddings in ChromaDB plus a BM25 keyword index,
+              fused with reciprocal rank. Answers cite the exact document chunk they
+              came from.
+            </p>
+            <a class="btn btn-ghost btn-sm" href="knowledge.html" style="align-self: flex-start;">Ask the knowledge base</a>
+          </article>
+          <article class="card feature reveal">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
+            </span>
+            <h3>Honest reporting</h3>
+            <p>
+              Hold-out metrics, threshold trade-offs, confusion matrix and explicit
+              limitations published next to the demo — evaluated on the reserved
+              20% split of the dataset.
+            </p>
+            <a class="btn btn-ghost btn-sm" href="system.html" style="align-self: flex-start;">Read the system notes</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight">
+      <div class="shell">
+        <div class="grid g-5-7">
+          <div class="reveal">
+            <span class="kicker">Retrieval-augmented assistant</span>
+            <h2 class="h2" style="margin-top: 12px;">Answers with receipts</h2>
+            <p class="lede" style="font-size: 0.95rem; margin-top: 14px;">
+              The assistant retrieves the most relevant chunks from three company
+              documents and asks a local Llama 3.2 model to answer using only that
+              context. Every response ships with the supporting passages.
+            </p>
+            <ul class="clean" style="margin-top: 18px;">
+              <li>Hybrid retrieval: semantic search + BM25 keyword search</li>
+              <li>Reciprocal rank fusion for a single, stable ranking</li>
+              <li>Explicit "not in the documents" behaviour</li>
+              <li>Discounts and quotations stay behind human approval</li>
+            </ul>
+            <a class="btn btn-ghost" href="knowledge.html" style="margin-top: 22px;">Open the knowledge demo</a>
+          </div>
+          <article class="answer-card reveal">
+            <span class="answer-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+              Captured from POST /ask &middot; llama3.2:1b
+            </span>
+            <p class="answer-text" id="teaserAnswer"></p>
+            <div class="chunk-list" style="margin-top: 16px;" id="teaserChunks"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="index.html">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+            </span>
+            <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+          </a>
+          <p>
+            Sales &amp; Operations Intelligence Copilot — machine learning, hybrid
+            retrieval and a grounded language model in one small, inspectable system.
+          </p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="analytics.html">Analytics</a>
+            <a href="model.html">Model Lab</a>
+            <a href="knowledge.html">Knowledge Assistant</a>
+          </div>
+          <div class="footer-col">
+            <h4>Engineering</h4>
+            <a href="system.html">Architecture</a>
+            <a href="system.html#api">API reference</a>
+            <a href="system.html#limitations">Limitations</a>
+          </div>
+          <div class="footer-col">
+            <h4>Data</h4>
+            <a href="system.html#dataset">Dataset</a>
+            <a href="system.html#model-card">Model card</a>
+            <a href="system.html#quickstart">Quickstart</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Built from the local project artifacts — Python 3.14, FastAPI, scikit-learn, ChromaDB, Ollama.</span>
+        <span>Synthetic demonstration data. Not a production decision system.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/common.js" defer></script>
+  <script src="assets/js/scoring.js" defer></script>
+  <script src="assets/js/home.js" defer></script>
+</body>
+</html>

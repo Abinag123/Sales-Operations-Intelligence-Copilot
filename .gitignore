@@ -1,0 +1,46 @@
+# Environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Secrets and local config
+.env
+.env.local
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs and local previews
+logs/
+*.log
+
+# Build/coverage output
+htmlcov/
+.coverage
+dist/
+build/
+
+# Generated/exported data
+web/assets/data/*.json
+
+# Local model copies (primary artifact is models/*.joblib)
+notebooks/models/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

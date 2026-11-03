@@ -1,0 +1,27 @@
+SALES POLICY
+
+Customer Enquiries:
+All customer enquiries should be recorded with customer name, contact details, service requirements, and enquiry date.
+
+Lead Prioritization:
+Leads should be prioritized based on:
+- Customer budget
+- Business requirements
+- Engagement level
+- Response time
+- Purchase intention
+
+Lead Follow-up:
+Sales representatives should follow up with potential customers regularly.
+
+Quotation Policy:
+A quotation should be prepared after understanding the customer's requirements and project scope.
+
+Customer Communication:
+Communication should be professional, clear, and customer-friendly.
+
+Discount Policy:
+Any discount must be approved by the authorized business representative.
+
+Important:
+The AI assistant may recommend follow-up actions, but it must not approve discounts, confirm quotations, or send customer commitments without human approval.

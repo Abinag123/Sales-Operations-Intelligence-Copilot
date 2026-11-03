@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics — Sales &amp; Operations Intelligence Copilot</title>
+  <meta name="description" content="Interactive lead analytics computed from the 5,000-row dataset: filter by industry and channel, and every KPI and chart recomputes in the browser." />
+  <meta name="theme-color" content="#04080f" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-page="analytics">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Sales and Operations Intelligence Copilot home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+        </span>
+        <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html" data-nav="overview">Overview</a>
+        <a href="analytics.html" data-nav="analytics">Analytics</a>
+        <a href="model.html" data-nav="model">Model Lab</a>
+        <a href="knowledge.html" data-nav="knowledge">Knowledge</a>
+        <a href="system.html" data-nav="system">System</a>
+        <a href="model.html" class="nav-cta">Score a lead</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" style="padding-bottom: 34px;">
+      <div class="shell">
+        <span class="eyebrow"><span class="pulse-dot"></span> Live dashboard &middot; client-side compute</span>
+        <h1 style="font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin: 20px 0 16px; max-width: 16ch;">
+          The pipeline, <span class="grad-text">filtered</span>.
+        </h1>
+        <p class="lede">
+          This mirrors the Streamlit command center: pick an industry or a channel
+          and every KPI, chart and record below is recomputed from the 5,000 raw
+          lead rows — no server round-trip.
+        </p>
+      </div>
+    </section>
+
+    <section class="section tight" style="padding-top: 10px;">
+      <div class="shell">
+        <div class="filter-bar" role="group" aria-label="Dashboard filters">
+          <span class="filter-label">Industry</span>
+          <div id="industryFilters" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+          <span class="filter-label" style="margin-left: 14px;">Channel</span>
+          <div id="sourceFilters" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+          <button class="chip-reset" type="button" id="resetFilters">Reset all filters</button>
+        </div>
+
+        <div class="grid g4" id="kpiRow">
+          <article class="card kpi">
+            <span class="kpi-label">Leads in view</span>
+            <span class="kpi-value num" id="statLeads">—</span>
+            <span class="kpi-foot" id="statLeadsFoot">of 5,000 total</span>
+          </article>
+          <article class="card kpi">
+            <span class="kpi-label">Converted</span>
+            <span class="kpi-value num" id="statConverted">—</span>
+            <span class="kpi-foot" id="statConvertedFoot">—</span>
+          </article>
+          <article class="card kpi">
+            <span class="kpi-label">Conversion rate</span>
+            <span class="kpi-value num" id="statRate">—</span>
+            <span class="kpi-foot" id="statRateFoot">—</span>
+          </article>
+          <article class="card kpi">
+            <span class="kpi-label">Average budget</span>
+            <span class="kpi-value num" id="statBudget">—</span>
+            <span class="kpi-foot" id="statBudgetFoot">—</span>
+          </article>
+        </div>
+
+        <div class="grid g-7-5" style="margin-top: 18px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Conversion by channel</h3>
+                <p class="card-sub">Share of filtered leads that converted</p>
+              </div>
+              <span class="tag info" id="viewTag">all leads</span>
+            </div>
+            <div class="card-body"><div class="chart" id="chSource"></div></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Outcome mix</h3>
+                <p class="card-sub">Converted vs. not converted</p>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart" id="chOutcome"></div></div>
+          </article>
+        </div>
+
+        <div class="grid g2" style="margin-top: 18px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Industry performance</h3>
+                <p class="card-sub">Conversion rate by industry</p>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart" id="chIndustry"></div></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Response-time windows</h3>
+                <p class="card-sub">Conversion rate by first-response speed</p>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart" id="chResponse"></div></div>
+          </article>
+        </div>
+
+        <div class="grid g2" style="margin-top: 18px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Engagement volume</h3>
+                <p class="card-sub">Conversion rate by engagement score (visits + emails + calls + interactions)</p>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart" id="chEngagement"></div></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Website engagement vs. budget</h3>
+                <p class="card-sub">One dot per sampled lead &middot; 320 points</p>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart" id="chScatter"></div></div>
+          </article>
+        </div>
+
+        <div class="grid g2" style="margin-top: 18px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Budget quartiles</h3>
+                <p class="card-sub">Conversion rate across four equal budget bands</p>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart" id="chBudget"></div></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Dataset health</h3>
+                <p class="card-sub">Quality checks from the source CSV</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="metric-grid" id="qualityGrid"></div>
+              <div class="note" style="margin-top: 14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                <span>Median imputation and one-hot encoding handle any gaps; the raw CSV currently contains none.</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <article class="card" style="margin-top: 18px;">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">Filtered lead records</h3>
+              <p class="card-sub" id="tableCaption">Showing the first rows of the current view</p>
+            </div>
+            <span class="tag" id="tableCount">—</span>
+          </div>
+          <div class="card-body table-wrap">
+            <table class="data" id="leadTable">
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Industry</th>
+                  <th>Size</th>
+                  <th class="right">Budget</th>
+                  <th class="right">Visits</th>
+                  <th class="right">Emails</th>
+                  <th class="right">Calls</th>
+                  <th class="right">Interactions</th>
+                  <th class="right">Response (h)</th>
+                  <th>Outcome</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <p class="card-sub" style="margin-top: 16px;">
+          Numbers describe the synthetic demonstration dataset, not live CRM
+          activity. Filters and charts reflect only the rows currently selected.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="index.html">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+            </span>
+            <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+          </a>
+          <p>
+            Sales &amp; Operations Intelligence Copilot — machine learning, hybrid
+            retrieval and a grounded language model in one small, inspectable system.
+          </p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="analytics.html">Analytics</a>
+            <a href="model.html">Model Lab</a>
+            <a href="knowledge.html">Knowledge Assistant</a>
+          </div>
+          <div class="footer-col">
+            <h4>Engineering</h4>
+            <a href="system.html">Architecture</a>
+            <a href="system.html#api">API reference</a>
+            <a href="system.html#limitations">Limitations</a>
+          </div>
+          <div class="footer-col">
+            <h4>Data</h4>
+            <a href="system.html#dataset">Dataset</a>
+            <a href="system.html#model-card">Model card</a>
+            <a href="system.html#quickstart">Quickstart</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Built from the local project artifacts — Python 3.14, FastAPI, scikit-learn, ChromaDB, Ollama.</span>
+        <span>Synthetic demonstration data. Not a production decision system.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/common.js" defer></script>
+  <script src="assets/js/analytics.js" defer></script>
+</body>
+</html>

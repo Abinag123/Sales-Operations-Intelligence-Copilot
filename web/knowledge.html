@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Knowledge Assistant — Sales &amp; Operations Intelligence Copilot</title>
+  <meta name="description" content="Retrieval-augmented company knowledge: hybrid semantic + BM25 search over company documents, with grounded answers and source citations." />
+  <meta name="theme-color" content="#04080f" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-page="knowledge">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Sales and Operations Intelligence Copilot home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+        </span>
+        <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html" data-nav="overview">Overview</a>
+        <a href="analytics.html" data-nav="analytics">Analytics</a>
+        <a href="model.html" data-nav="model">Model Lab</a>
+        <a href="knowledge.html" data-nav="knowledge">Knowledge</a>
+        <a href="system.html" data-nav="system">System</a>
+        <a href="model.html" class="nav-cta">Score a lead</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" style="padding-bottom: 30px;">
+      <div class="shell">
+        <span class="eyebrow"><span class="pulse-dot"></span> RAG &middot; hybrid retrieval &middot; cited answers</span>
+        <h1 style="font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin: 20px 0 16px; max-width: 18ch;">
+          Ask the company, <span class="grad-text">get citations</span>.
+        </h1>
+        <p class="lede">
+          Three company documents, eight chunks, two retrievers. The assistant
+          finds the passages that answer a question and returns them with the
+          source file and chunk id — then a local Llama model writes the reply
+          using only those passages.
+        </p>
+      </div>
+    </section>
+
+    <section class="section tight" style="padding-top: 10px;">
+      <div class="shell">
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">Company knowledge search</h3>
+              <p class="card-sub">Browser-side BM25 over the exact chunks stored in ChromaDB</p>
+            </div>
+            <span class="tag info" id="chunkCount">8 chunks</span>
+          </div>
+
+          <form class="search-box" id="searchForm" role="search">
+            <label class="sr-only" for="question">Ask a company knowledge question</label>
+            <input id="question" name="question" type="search" placeholder="e.g. Who approves discounts?" />
+            <button class="btn btn-primary" type="submit">
+              Retrieve passages
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </button>
+          </form>
+
+          <div class="preset-row" id="sampleQuestions" aria-label="Sample questions"></div>
+
+          <div class="note" style="margin-top: 16px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+            <span>
+              A static site cannot run the language model. This page demonstrates
+              the <strong>retrieval</strong> step in your browser; the generated
+              answer is recorded from a real local <span class="mono">POST /ask</span>
+              call to Llama 3.2 and is shown when the question matches.
+            </span>
+          </div>
+
+          <div id="results" style="margin-top: 20px;" aria-live="polite"></div>
+        </article>
+
+        <div class="grid g-5-7" style="margin-top: 18px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Retrieval pipeline</h3>
+                <p class="card-sub">What happens before the model speaks</p>
+              </div>
+            </div>
+            <ol class="steps" style="margin-top: 16px;">
+              <li><b>Chunk</b> — documents split into ~500-character windows with 100-character overlap.</li>
+              <li><b>Embed</b> — all-MiniLM-L6-v2 sentence embeddings stored in ChromaDB with cosine distance.</li>
+              <li><b>Keyword search</b> — a BM25 index over the same chunks catches exact policy terms.</li>
+              <li><b>Fuse</b> — reciprocal rank fusion (k = 60) merges both rankings into one list.</li>
+              <li><b>Ground</b> — the top three chunks become the only context the LLM may use, with a strict citation instruction.</li>
+            </ol>
+            <div class="note warn" style="margin-top: 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+              <span>
+                Policy guardrail: the assistant may recommend follow-up actions, but
+                it must not approve discounts, confirm quotations, or send customer
+                commitments without human approval.
+              </span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Source documents</h3>
+                <p class="card-sub">The entire knowledge base, readable in full</p>
+              </div>
+            </div>
+            <div id="documentList" style="margin-top: 14px;"></div>
+            <div class="legend">
+              <span class="legend-item"><span class="legend-dot" style="background:#38bdf8"></span> 3 documents</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#a78bfa"></span> 8 indexed chunks</span>
+            </div>
+          </article>
+        </div>
+
+        <article class="card" style="margin-top: 18px;">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">Recorded answer transcript</h3>
+              <p class="card-sub">Captured verbatim from the local API on this machine</p>
+            </div>
+            <span class="tag good"><span class="pulse-dot"></span> llama3.2:1b · 9.6s</span>
+          </div>
+          <div class="card-body">
+            <div class="answer-card">
+              <span class="answer-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+                Who approves discounts?
+              </span>
+              <p class="answer-text" id="transcriptAnswer"></p>
+            </div>
+            <div class="chunk-list" id="transcriptCitations"></div>
+            <div style="margin-top: 16px;" class="code">
+              <div class="code-head">
+                <span>Request</span>
+                <button class="copy-btn" type="button" data-copy="#askCurl">Copy</button>
+              </div>
+              <pre id="askCurl">curl -X POST http://127.0.0.1:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Who approves discounts?"}'</pre>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="index.html">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+            </span>
+            <span>Copilot<span class="brand-sub">Sales &amp; Ops Intelligence</span></span>
+          </a>
+          <p>
+            Sales &amp; Operations Intelligence Copilot — machine learning, hybrid
+            retrieval and a grounded language model in one small, inspectable system.
+          </p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="analytics.html">Analytics</a>
+            <a href="model.html">Model Lab</a>
+            <a href="knowledge.html">Knowledge Assistant</a>
+          </div>
+          <div class="footer-col">
+            <h4>Engineering</h4>
+            <a href="system.html">Architecture</a>
+            <a href="system.html#api">API reference</a>
+            <a href="system.html#limitations">Limitations</a>
+          </div>
+          <div class="footer-col">
+            <h4>Data</h4>
+            <a href="system.html#dataset">Dataset</a>
+            <a href="system.html#model-card">Model card</a>
+            <a href="system.html#quickstart">Quickstart</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Built from the local project artifacts — Python 3.14, FastAPI, scikit-learn, ChromaDB, Ollama.</span>
+        <span>Synthetic demonstration data. Not a production decision system.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/common.js" defer></script>
+  <script src="assets/js/knowledge.js" defer></script>
+</body>
+</html>

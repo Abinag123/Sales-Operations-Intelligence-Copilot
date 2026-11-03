@@ -1,0 +1,25 @@
+# Runtime dependencies for the deployable API image (see Dockerfile).
+# Everything here is imported by src/ at request time; notebooks and editing
+# tools from requirements.txt are deliberately left out to keep the image small.
+
+# API
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+
+# Model + data
+numpy
+pandas
+scikit-learn
+joblib
+
+# Retrieval
+chromadb
+sentence-transformers
+
+# Language model client
+ollama
+
+# Dashboard (only used by the docker-compose "dashboard" service)
+streamlit
