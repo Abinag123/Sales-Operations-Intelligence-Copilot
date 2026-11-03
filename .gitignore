@@ -44,3 +44,10 @@ notebooks/models/
 .idea/
 *.swp
 *.swo
+
+# Deploy artifacts (not part of local-only release)
+deploy.json
+worker.js
+
+# Temporary test files
+scripts/serve_web_with_api.py

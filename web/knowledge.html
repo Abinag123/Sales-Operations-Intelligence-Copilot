@@ -78,10 +78,11 @@
           <div class="note" style="margin-top: 16px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
             <span>
-              A static site cannot run the language model. This page demonstrates
-              the <strong>retrieval</strong> step in your browser; the generated
-              answer is recorded from a real local <span class="mono">POST /ask</span>
-              call to Llama 3.2 and is shown when the question matches.
+              This page calls the <strong>FastAPI backend</strong> to generate answers with Llama 3.2.
+              Start the API locally (<span class="mono">python scripts/run_api.py</span>) and the site will
+              query it for every question. The recorded transcript below is from a previous local run.
+              For local development with API integration, use <span class="mono">python scripts/serve_web_with_api.py</span>
+              (requires the FastAPI backend running on port 8000).
             </span>
           </div>
 

@@ -152,16 +152,20 @@ python -m http.server 8080 --directory web
 
 The site must be served over HTTP (browsers block `fetch` on `file://`).
 
-### Live demo
+### Local preview
 
-| Environment | URL |
-| --- | --- |
-| Production | https://site-50a26237741b45e5b516b7088d0511af.freebuff.page |
-| Preview | https://site-fac97d5bfa5c417e84db036b92ddf7f5.freebuff.page |
+Serve the static site locally:
 
-The published copy is only `web/` plus a tiny static Worker; the Python services
+```powershell
+python -m http.server 8080 --directory web
+# http://127.0.0.1:8080
+```
+
+The site must be served over HTTP (browsers block `fetch` on `file://`).
+
+The `web/` folder is a self-contained static site. The Python services
 (and Ollama) stay local. See [UNDO_AND_DEPLOY.md](UNDO_AND_DEPLOY.md) for how to
-publish an update or restore the pre-build state of the repository.
+undo the changes made to this project.
 
 ---
 
