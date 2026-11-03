@@ -45,7 +45,10 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 
-# local language model + knowledge index
+# generate web data files (required for the static site)
+python scripts/export_web_data.py
+
+# local language model + knowledge index (optional, for RAG assistant)
 ollama pull llama3.2:1b
 python scripts/ingest_knowledge.py
 
